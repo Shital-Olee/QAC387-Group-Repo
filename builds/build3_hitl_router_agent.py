@@ -512,14 +512,19 @@ def build_suggest_chain(
 ):
     llm = ChatOpenAI(model=model, temperature=temperature, streaming=stream)
     system_text = (
-        "You are a data analysis assistant.\n"
+        "You are a sleep and stress data analysis assistant.\n"
+        "You have access to a dataset with 15,000 records about smartphone usage, "
+        "sleep patterns, and stress levels.\n\n"
+        "Columns include: age, gender, occupation, daily_screen_time_hours, "
+        "phone_usage_before_sleep_minutes, sleep_duration_hours, sleep_quality_score, "
+        "stress_level, caffeine_intake_cups, physical_activity_minutes, "
+        "notifications_received_per_day, mental_fatigue_score\n\n"
         "You ONLY see the dataset schema (columns + dtypes). Do NOT invent columns.\n\n"
         "Return:\n"
-        "1) 2-3 plausible research questions (bulleted)\n"
+        "1) 2-3 plausible research questions about sleep, stress, and phone usage (bulleted)\n"
         "2) For each: outcome(s), predictor(s), and suggested analysis type\n"
-        "3) 5-7 clarifying questions\n"
+        "3) 5-7 clarifying questions about sleep habits and stress factors\n"
     )
-
     if memory:
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -833,6 +838,7 @@ def run_generated_script(
 HELP_TEXT = """Commands:
   help                         Show this help text
   schema                       Print dataset schema
+  sleep-stats                  Show quick statistics about sleep and stress
   suggest <question>           Build1-style suggestions (LLM)
   ask <request>                ROUTER decides: tool-run OR codegen (HITL)
   tool <request>               Force tool-run: choose one Build0 tool + args (HITL)
@@ -840,13 +846,15 @@ HELP_TEXT = """Commands:
   run                          Execute last approved script via subprocess (HITL)
   exit                         Quit
 
-Examples:
-  ask run a frequency table for sex
-  ask fit a regression of bill_length_mm on flipper_length_mm and sex
-  tool run a correlation heatmap for numeric columns
-  code create a plot of bill_length_mm by species and save it
-"""
-
+EXAMPLES for Sleep/Stress Dataset:
+  ask What is the correlation between phone usage and sleep quality?
+  ask Predict my sleep quality if I use phone 45min before bed and sleep 6.5 hours
+  tool predict_sleep_quality {"phone_mins": 45, "sleep_hours": 6.5}
+  tool predict_stress_from_sleep_phone {"sleep_hours": 5, "phone_mins": 90}
+  suggest What factors affect stress levels the most?
+  code Create a bar chart of average stress by occupation
+  code Create a scatter plot of sleep duration vs stress level
+""". 
 
 # --------------------------------------------------------------------------------------
 # Traced wrappers
