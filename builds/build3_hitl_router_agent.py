@@ -639,12 +639,6 @@ def build_toolplan_chain(
     - Allow-list tools + tool signatures
     - User request
 
-    Allow-list tools:
-    {allow_str}
-
-    Tool argument names by signature:
-    {tool_arg_hints}
-
     Return ONLY valid JSON in exactly ONE of these forms.
     
     If you choose a tool:
@@ -674,6 +668,8 @@ def build_toolplan_chain(
             ("system", system_text),
             (
                 "human",
+                "Allow-list tools:\n{allow_str}\n\n"
+                "Tool arg hints:\n{tool_arg_hints}\n\n"
                 "Dataset schema:\n{schema_text}\n\nUser request:\n{user_request}\n",
             ),
         ]
@@ -902,10 +898,15 @@ def traced_toolplan(
     request: str,
     config: Dict[str, Any],
     tags: list[str],
+    allow_str: str,
+    tool_arg_hints: str,
 ) -> str:
     with propagate_attributes(tags=tags + ["build", "toolplan"]):
         return toolplan_chain.invoke(
-            {"schema_text": schema_text, "user_request": request}, config=config
+            {"schema_text": schema_text,
+            "user_request": request,
+            "allow_str": allow_str,           
+            "tool_arg_hints": tool_arg_hints,}, config=config
         )
 
 
@@ -919,7 +920,9 @@ def traced_router(
 ) -> str:
     with propagate_attributes(tags=tags + ["build", "router"]):
         return router_chain.invoke(
-            {"schema_text": schema_text, "user_request": request}, config=config
+            {"schema_text": schema_text, 
+            "user_request": request,
+            }, config=config
         )
 
 
@@ -1030,9 +1033,11 @@ def do_tool_run(
     schema_text: str,
     base_config: Dict[str, Any],
     tags: list[str],
+    allow_str: str,        
+    tool_arg_hints: str,
 ) -> None:
     """Tool planner -> HITL approve -> run tool -> save output -> summarize."""
-    toolplan_raw = traced_toolplan(toolplan_chain, schema_text, req, base_config, tags)
+    toolplan_raw = traced_toolplan(toolplan_chain, schema_text, req, base_config, tags, allow_str=allow_str, tool_arg_hints=tool_arg_hints,)
     plan = parse_json_object(toolplan_raw)
     if not plan:
         print("\nERROR: Tool planner did not return valid JSON. Try again.\n")
@@ -1441,6 +1446,8 @@ def main() -> None:
                 schema_text=schema_text,
                 base_config=base_config,
                 tags=tag_list,
+                allow_str=format_capability_hints(allowed_tools, tool_descriptions), 
+                tool_arg_hints=tool_arg_hints,
             )
             continue
 
