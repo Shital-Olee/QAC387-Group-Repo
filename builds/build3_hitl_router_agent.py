@@ -854,7 +854,7 @@ EXAMPLES for Sleep/Stress Dataset:
   suggest What factors affect stress levels the most?
   code Create a bar chart of average stress by occupation
   code Create a scatter plot of sleep duration vs stress level
-""". 
+"""
 
 # --------------------------------------------------------------------------------------
 # Traced wrappers
