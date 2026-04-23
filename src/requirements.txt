@@ -81,3 +81,8 @@ wcwidth==0.6.0
 xxhash==3.6.0
 zstandard==0.25.0
 scikit-learn==1.4.2
+#build4
+faiss-cpu==1.7.4
+pypdf==6.10.2
+streamlit==1.50.0
+langfuse==3.10.5
